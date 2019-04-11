@@ -12,18 +12,25 @@ from bs4 import BeautifulSoup
 # 获取当前页HTML内容
 def getHTML(url,headers):
     try:
-        r=requests.post(headers+url)
-        r.raise_for_status()
+        queryUrl = headers+url
+        r=requests.get(queryUrl)
         r.encoding=r.apparent_encoding
         return r.text
-    except:
+    except requests.exceptions.HTTPError as h:
+        print(h)
+        return False
+    except requests.exceptions.Timeout as t:
+        print(t)
+        return False
+    except requests.exceptions.SSLError as s:
+        print(s)
         return False
 
 # 爬取当前页搜索结果内的url
 def getUrl(html):
     urlList = []
     soup=BeautifulSoup(html,'html.parser')
-    for u in soup.find_all('div',class_='item-title'):
+    for u in soup.find_all('div',class_='Search__result___2S94i'):
         t=u.find('a')
         urlList.append(t['href'])
     return urlList
@@ -32,7 +39,7 @@ def getUrl(html):
 def getMagnetic(html):
     magneticList = []
     soup=BeautifulSoup(html,'html.parser')
-    for u in soup.find_all('div',class_='panel-body'):
+    for u in soup.find_all('div',class_='Information__content_information___1e4H7'):
         t=u.find('a')
         if t != None:
             magneticList.append(t.text)
@@ -44,22 +51,29 @@ def getInput(strs,page):
     setpage = page or '1'
     print('------输入的内容-----'+setStr)
     print('------页------码-----'+setpage)
-    html = getHTML('/search/'+setStr+'/default-'+setpage+'.html','https://btcat.bid')
+    html = getHTML('/search?word='+setStr+'&page='+setpage,'https://www.cilimao.cc')
     return html
+
+# 磁力爬取主函数
+def runMag(str,page):
+    htmlText = getInput(str,page)
+    theValue = []
+    if htmlText:
+        urlList = getUrl(htmlText)
+        print('-----------返回磁力----------')
+        for one in urlList:
+            if 'https://pan.baidu.com' in one:
+                continue
+            magHtml = getHTML(one,'https://www.cilimao.cc')
+            magneticList = getMagnetic(magHtml)
+            theValue.append(magneticList[0])
+        value = '------'.join(theValue)
+        return value
 
 # 主函数
 def main():
-    htmlText = getInput('明日花','1')
-    if htmlText:
-        urlList = getUrl(htmlText)
-        n = len(urlList)
-        while n>=0:
-            magHtml = getHTML(urlList[n-1],'https://btcat.bid')
-            magneticList = getMagnetic(magHtml)
-            print('-----------返回磁力----------')
-            for i in range(1,3):
-                print(magneticList[i-1])
-            n = n-1
+    s = runMag('rct','1')
+    print(s)
 
 # 防模块自调用
 if __name__=='__main__':
