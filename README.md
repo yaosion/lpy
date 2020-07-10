@@ -21,3 +21,6 @@
 > 微信查看男女比例
 
  - 更新资源包`pip`，安装模块使用`pip install page_name`的形式安装,进入`pip`包解压文件夹根目录，使用`python setip.py install`安装`pip`
+
+**connandcsv.py 执行sql生成csv**
+> 链接数据库，执行sql生成csv文件，修改生成文件格式，可以对应生成excel或者其他文件
